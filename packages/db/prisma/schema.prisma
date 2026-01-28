@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  plan      String   @default("free")
+  createdAt DateTime @default(now())
+
+  users     User[]
+  roles     Role[]
+  services  Service[]
+  events    Event[]
+  alerts    Alert[]
+  incidents Incident[]
+  runbooks  Runbook[]
+  audits    AuditLog[]
+  usage     Usage[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  roleId    String?
+  role      Role?    @relation(fields: [roleId], references: [id])
+  audits    AuditLog[] @relation("AuditActor")
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  users     User[]
+  permissions RolePermission[]
+
+  @@unique([tenantId, name])
+}
+
+model Permission {
+  id   String @id @default(cuid())
+  key  String @unique
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  owner       String?
+  environment String
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  dependenciesFrom Dependency[] @relation("FromService")
+  dependenciesTo   Dependency[] @relation("ToService")
+
+  @@unique([tenantId, name, environment])
+}
+
+model Dependency {
+  id            String @id @default(cuid())
+  tenantId      String
+  fromServiceId String
+  toServiceId   String
+
+  tenant        Tenant  @relation(fields: [tenantId], references: [id])
+  fromService   Service @relation("FromService", fields: [fromServiceId], references: [id])
+  toService     Service @relation("ToService", fields: [toServiceId], references: [id])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  tenantId  String
+  serviceId String?
+  type      String
+  severity  String
+  source    String
+  ts        DateTime
+  payload   Json
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  service   Service? @relation(fields: [serviceId], references: [id])
+  alerts    Alert[]
+  incidentLinks IncidentEvent[]
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  tenantId  String
+  eventId   String
+  status    String
+  dedupKey  String
+  createdAt DateTime @default(now())
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  event     Event  @relation(fields: [eventId], references: [id])
+
+  @@index([tenantId, dedupKey])
+}
+
+model Incident {
+  id        String   @id @default(cuid())
+  tenantId  String
+  title     String
+  status    String
+  severity  String
+  openedAt  DateTime @default(now())
+  closedAt  DateTime?
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  events    IncidentEvent[]
+  suggestions AiSuggestion[]
+
+  @@index([tenantId, status])
+}
+
+model IncidentEvent {
+  incidentId String
+  eventId    String
+
+  incident   Incident @relation(fields: [incidentId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id])
+
+  @@id([incidentId, eventId])
+}
+
+model Metric {
+  id        String   @id @default(cuid())
+  tenantId  String
+  serviceId String
+  name      String
+  ts        DateTime
+  value     Float
+
+  tenant    Tenant  @relation(fields: [tenantId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  tenantId  String
+  serviceId String
+  ts        DateTime
+  level     String
+  message   String
+  traceId   String?
+
+  tenant    Tenant  @relation(fields: [tenantId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+}
+
+model Trace {
+  id        String   @id @default(cuid())
+  tenantId  String
+  serviceId String
+  traceId   String
+  spanId    String
+  parentId  String?
+  ts        DateTime
+  duration  Int
+
+  tenant    Tenant  @relation(fields: [tenantId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  @@index([tenantId, traceId])
+}
+
+model Runbook {
+  id         String   @id @default(cuid())
+  tenantId   String
+  title      String
+  stepsMd    String
+  lastUpdated DateTime @updatedAt
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+}
+
+model AiSuggestion {
+  id          String   @id @default(cuid())
+  tenantId    String
+  incidentId  String
+  confidence  Float
+  output      Json
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  incident    Incident @relation(fields: [incidentId], references: [id])
+  feedbacks   AiFeedback[]
+}
+
+model AiFeedback {
+  id           String   @id @default(cuid())
+  tenantId     String
+  suggestionId String
+  rating       Int
+  comment      String?
+
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  suggestion   AiSuggestion @relation(fields: [suggestionId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  actorId   String?
+  action    String
+  target    String
+  ts        DateTime @default(now())
+  metadata  Json?
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  actor     User?  @relation("AuditActor", fields: [actorId], references: [id])
+}
+
+model Usage {
+  id          String   @id @default(cuid())
+  tenantId    String
+  metric      String
+  amount      Int
+  periodStart DateTime
+  periodEnd   DateTime
+
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
+}

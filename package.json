@@ -1,0 +1,19 @@
+{
+  "name": "ai-devops-assistant",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "turbo format",
+    "dev:infra": "docker compose -f infra/docker-compose.yml up -d",
+    "down:infra": "docker compose -f infra/docker-compose.yml down",
+    "dev:all": "pnpm dev:infra && turbo dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}

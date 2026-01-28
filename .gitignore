@@ -1,0 +1,17 @@
+# Node
+node_modules/
+.pnp.cjs
+.pnpm-debug.log*
+
+# Build
+.next/
+dist/
+
+# Env
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
