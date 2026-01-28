@@ -3,6 +3,7 @@
 Prisma schema and database utilities.
 
 ## Setup
-1) Set DATABASE_URL in .env (root or packages/db)
-2) Run `pnpm -C packages/db migrate` to create the database
-3) Run `pnpm -C packages/db generate`
+1) Ensure Postgres is running: `pnpm -C ../../ dev:infra`
+2) Set DATABASE_URL (root `.env` or this package `.env`)
+3) Run migrations: `pnpm -C . prisma migrate dev --name init`
+4) Generate client: `pnpm -C . prisma generate`

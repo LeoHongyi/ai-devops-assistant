@@ -16,10 +16,16 @@ model Tenant {
   users     User[]
   roles     Role[]
   services  Service[]
+  dependencies Dependency[]
   events    Event[]
   alerts    Alert[]
   incidents Incident[]
+  metrics   Metric[]
+  logs      Log[]
+  traces    Trace[]
   runbooks  Runbook[]
+  suggestions AiSuggestion[]
+  feedbacks  AiFeedback[]
   audits    AuditLog[]
   usage     Usage[]
 }
@@ -74,6 +80,10 @@ model Service {
   environment String
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  events      Event[]
+  metrics     Metric[]
+  logs        Log[]
+  traces      Trace[]
   dependenciesFrom Dependency[] @relation("FromService")
   dependenciesTo   Dependency[] @relation("ToService")
 
