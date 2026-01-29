@@ -24,6 +24,7 @@ export function registerAuthRoutes(app: FastifyInstance, prisma: PrismaClient) {
     {
       schema: {
         tags: ["auth"],
+        security: [],
         body: {
           type: "object",
           required: ["email", "password"],
@@ -63,6 +64,7 @@ export function registerAuthRoutes(app: FastifyInstance, prisma: PrismaClient) {
     {
       schema: {
         tags: ["auth"],
+        security: [],
         body: {
           type: "object",
           required: ["refreshToken"],

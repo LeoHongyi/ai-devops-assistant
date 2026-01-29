@@ -8,6 +8,7 @@ export function registerHealthRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["system"],
+        security: [],
         response: {
           200: {
             type: "object",
