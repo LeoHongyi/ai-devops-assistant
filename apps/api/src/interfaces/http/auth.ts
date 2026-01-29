@@ -36,7 +36,7 @@ export function requireAuth(prisma: PrismaClient) {
         return reply.status(401).send({ error: "unauthorized" });
       }
 
-      const perms = (user.role?.permissions ?? []).map((p) => p.permission.key);
+      const perms = (user.role?.permissions ?? []).map((p: { permission: { key: string } }) => p.permission.key);
       req.auth = {
         userId: user.id,
         tenantId: user.tenantId,

@@ -10,9 +10,10 @@
     "format": "prettier -w .",
     "seed": "tsx src/seed.ts",
     "worker": "tsx src/worker.ts",
-    "test": "vitest",
+    "test": "vitest run",
     "test:run": "vitest run",
-    "test:e2e": "vitest run -c vitest.e2e.config.ts"
+    "test:e2e": "vitest run -c vitest.e2e.config.ts",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "fastify": "^4.28.1",
@@ -22,7 +23,8 @@
     "@fastify/swagger-ui": "^3.0.0",
     "nats": "^2.23.0",
     "dotenv": "^16.4.5",
-    "@fastify/jwt": "^8.0.0"
+    "@fastify/jwt": "^8.0.0",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
@@ -31,6 +33,7 @@
     "prisma": "^5.22.0",
     "vitest": "^2.1.4",
     "supertest": "^6.3.4",
-    "@types/supertest": "^2.0.16"
+    "@types/supertest": "^2.0.16",
+    "@types/bcryptjs": "^2.4.6"
   }
 }

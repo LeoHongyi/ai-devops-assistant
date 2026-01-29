@@ -6,9 +6,9 @@ import {
   getIncidentController,
   closeIncidentController
 } from "../controllers/incidents-controller";
-import { IncidentRepository } from "../../application/ports/incident-repository";
+import { IncidentRepository } from "../../../application/ports/incident-repository";
 import { sendResult } from "../result-mapper";
-import { AppError, err } from "../../application/result";
+import { AppError, err } from "../../../application/result";
 
 const createIncidentSchema = z.object({
   title: z.string().min(1),

@@ -1,10 +1,13 @@
 import "dotenv/config";
 import { prisma } from "./infrastructure/prisma-client";
 import { Permissions } from "./application/auth/permissions";
+import { hashPassword } from "./application/auth/password";
+import { normalizeTenantSlug } from "./application/auth/tenant";
 
 async function main() {
-  const tenant = await prisma.tenant.findFirst({ where: { name: "Acme" } })
-    ?? (await prisma.tenant.create({ data: { name: "Acme", plan: "free" } }));
+  const slug = normalizeTenantSlug("Acme");
+  const tenant = await prisma.tenant.findFirst({ where: { slug } })
+    ?? (await prisma.tenant.create({ data: { name: "Acme", slug, plan: "free" } }));
 
   const perms = [Permissions.IngestWrite, Permissions.IncidentsRead, Permissions.IncidentsWrite];
 
@@ -29,8 +32,13 @@ async function main() {
     });
   }
 
-  const adminUser = await prisma.user.findFirst({ where: { tenantId: tenant.id, email: "admin@acme.com" } })
-    ?? (await prisma.user.create({ data: { tenantId: tenant.id, email: "admin@acme.com", name: "Admin", roleId: adminRole.id } }));
+  const existing = await prisma.user.findFirst({ where: { tenantId: tenant.id, email: "admin@acme.com" } });
+  if (!existing) {
+    const passwordHash = await hashPassword("ChangeMe123!");
+    await prisma.user.create({
+      data: { tenantId: tenant.id, email: "admin@acme.com", name: "Admin", roleId: adminRole.id, passwordHash }
+    });
+  }
 
   await prisma.incident.create({
     data: {
@@ -41,7 +49,7 @@ async function main() {
     }
   });
 
-  return { tenant, adminUser };
+  return { tenant };
 }
 
 main()

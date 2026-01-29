@@ -10,3 +10,7 @@ Every new feature/change must include tests and verification steps.
 ## Current verification commands
 - Unit tests: `pnpm -C apps/api test`
 - E2E seed test: `pnpm -C apps/api test:e2e`
+
+## Pre-push Automation
+A pre-push hook runs the local CI checks before any push:
+- `pnpm ci:local`

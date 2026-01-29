@@ -17,10 +17,13 @@
     "dev:full": "pnpm dev:infra && pnpm dev:full:all",
     "dev:full:worker": "pnpm -C apps/api worker",
     "dev:full:all": "concurrently -k -n api,worker \"pnpm -C apps/api dev\" \"pnpm -C apps/api worker\"",
-    "dev:tmux": "tmux new-session -d -s aidda \"pnpm -C apps/api dev\" \\; split-window -h \"pnpm -C apps/api worker\" \\; select-layout even-horizontal \\; attach"
+    "dev:tmux": "tmux new-session -d -s aidda \"pnpm -C apps/api dev\" \\; split-window -h \"pnpm -C apps/api worker\" \\; select-layout even-horizontal \\; attach",
+    "prepare": "husky",
+    "ci:local": "pnpm lint && pnpm typecheck && pnpm db:generate"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
     "turbo": "^2.0.0",
     "typescript": "^5.4.5"
   }

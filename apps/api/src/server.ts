@@ -3,6 +3,9 @@ import { registerHealthRoutes } from "./interfaces/http/routes/health";
 import { registerIngestRoutes } from "./interfaces/http/routes/ingest";
 import { registerIncidentRoutes } from "./interfaces/http/routes/incidents";
 import { registerAuthRoutes } from "./interfaces/http/routes/auth";
+import { registerRoleRoutes } from "./interfaces/http/routes/roles";
+import { registerUserRoutes } from "./interfaces/http/routes/users";
+import { registerPermissionRoutes } from "./interfaces/http/routes/permissions";
 import { PrismaIncidentRepository } from "./infrastructure/repositories/prisma-incident-repo";
 import { PrismaEventRepository } from "./infrastructure/repositories/prisma-event-repo";
 import { prisma } from "./infrastructure/prisma-client";
@@ -38,6 +41,9 @@ export async function createServer() {
 
   registerHealthRoutes(app);
   registerAuthRoutes(app, prisma);
+  registerPermissionRoutes(app, prisma, auth);
+  registerRoleRoutes(app, prisma, auth);
+  registerUserRoutes(app, prisma, auth);
   registerIngestRoutes(app, bus, eventRepo, auth, canIngest);
   registerIncidentRoutes(app, incidentRepo, auth, canReadIncidents, canWriteIncidents);
 
