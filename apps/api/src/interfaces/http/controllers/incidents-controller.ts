@@ -1,8 +1,8 @@
-import { IncidentRepository } from "../../application/ports/incident-repository";
-import { createIncident, CreateIncidentInput } from "../../application/usecases/create-incident";
-import { listIncidents } from "../../application/usecases/list-incidents";
-import { getIncident } from "../../application/usecases/get-incident";
-import { closeIncident } from "../../application/usecases/close-incident";
+import { IncidentRepository } from "../../../application/ports/incident-repository";
+import { createIncident, CreateIncidentInput } from "../../../application/usecases/create-incident";
+import { listIncidents } from "../../../application/usecases/list-incidents";
+import { getIncident } from "../../../application/usecases/get-incident";
+import { closeIncident } from "../../../application/usecases/close-incident";
 
 export function createIncidentController(repo: IncidentRepository, tenantId: string, input: CreateIncidentInput) {
   return createIncident(repo, tenantId, input);

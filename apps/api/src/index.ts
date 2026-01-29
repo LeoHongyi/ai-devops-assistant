@@ -1,7 +1,8 @@
+import "dotenv/config";
 import { createServer } from "./server";
 
 async function main() {
-  const app = createServer();
+  const app = await createServer();
   const port = Number(process.env.PORT ?? 3001);
   const host = process.env.HOST ?? "0.0.0.0";
 
