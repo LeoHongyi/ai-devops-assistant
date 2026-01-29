@@ -16,7 +16,7 @@ export class PrismaIncidentRepository implements IncidentRepository {
 
   async list(tenantId: string): Promise<Incident[]> {
     const items = await this.prisma.incident.findMany({ where: { tenantId } });
-    return items.map((i) => this.toIncident(i));
+    return items.map((i: { id: string; tenantId: string; title: string; severity: string; status: string; openedAt: Date; closedAt: Date | null }) => this.toIncident(i));
   }
 
   async getById(tenantId: string, id: string): Promise<Incident | null> {

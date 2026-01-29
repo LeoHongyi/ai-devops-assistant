@@ -11,6 +11,7 @@ import { PrismaEventRepository } from "./infrastructure/repositories/prisma-even
 import { prisma } from "./infrastructure/prisma-client";
 import { registerSwagger } from "./interfaces/http/swagger";
 import { registerRequestLogger } from "./interfaces/http/request-logger";
+import { registerAuditLogger } from "./interfaces/http/audit-logger";
 import { NatsBus } from "./infrastructure/event-bus/nats-bus";
 import { NoopBus } from "./infrastructure/event-bus/noop-bus";
 import { registerAuth, requireAuth, requirePermission } from "./interfaces/http/auth";
@@ -27,6 +28,7 @@ export async function createServer() {
   registerRequestLogger(app);
   await registerSwagger(app);
   await registerAuth(app);
+  registerAuditLogger(app, prisma);
 
   const incidentRepo = new PrismaIncidentRepository(prisma);
   const eventRepo = new PrismaEventRepository(prisma);
