@@ -3,6 +3,7 @@ import { registerHealthRoutes } from "./interfaces/http/routes/health";
 import { registerIngestRoutes } from "./interfaces/http/routes/ingest";
 import { registerIncidentRoutes } from "./interfaces/http/routes/incidents";
 import { PrismaIncidentRepository } from "./infrastructure/repositories/prisma-incident-repo";
+import { PrismaEventRepository } from "./infrastructure/repositories/prisma-event-repo";
 import { prisma } from "./infrastructure/prisma-client";
 import { registerSwagger } from "./interfaces/http/swagger";
 import { registerRequestLogger } from "./interfaces/http/request-logger";
@@ -21,12 +22,13 @@ export async function createServer() {
   await registerSwagger(app);
 
   const incidentRepo = new PrismaIncidentRepository(prisma);
+  const eventRepo = new PrismaEventRepository(prisma);
 
   const natsUrl = process.env.NATS_URL;
   const bus = natsUrl ? await NatsBus.connect(natsUrl) : new NoopBus();
 
   registerHealthRoutes(app);
-  registerIngestRoutes(app, bus);
+  registerIngestRoutes(app, bus, eventRepo);
   registerIncidentRoutes(app, incidentRepo);
 
   return app;

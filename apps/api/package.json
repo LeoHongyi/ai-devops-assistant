@@ -8,7 +8,11 @@
     "lint": "echo 'add lint later'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format": "prettier -w .",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "worker": "tsx src/worker.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:e2e": "vitest run -c vitest.e2e.config.ts"
   },
   "dependencies": {
     "fastify": "^4.28.1",
@@ -23,6 +27,9 @@
     "@types/node": "^20.14.9",
     "tsx": "^4.19.2",
     "typescript": "^5.4.5",
-    "prisma": "^5.22.0"
+    "prisma": "^5.22.0",
+    "vitest": "^2.1.4",
+    "supertest": "^6.3.4",
+    "@types/supertest": "^2.0.16"
   }
 }
