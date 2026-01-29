@@ -9,6 +9,14 @@ export async function registerSwagger(app: FastifyInstance) {
         title: "AI DevOps Assistant API",
         description: "API documentation",
         version: "0.1.0"
+      },
+      securityDefinitions: {
+        bearerAuth: {
+          type: "apiKey",
+          name: "Authorization",
+          in: "header",
+          description: "Bearer <token>"
+        }
       }
     }
   });

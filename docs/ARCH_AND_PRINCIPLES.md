@@ -11,6 +11,7 @@ AI DevOps Assistant is a B2B SaaS platform that ingests operational signals (log
 - Ingest API: `/ingest/webhook`, `/ingest/logs`, `/ingest/metrics`, `/ingest/traces`
 - Incident API: list/create/get/close incidents
 - Multi-tenant access via `x-tenant-id`
+- JWT-based auth and RBAC permissions
 - Swagger docs at `/docs`
 - Request tracing via `x-request-id`
 - NATS consumer for ingest events
@@ -55,7 +56,7 @@ AI DevOps Assistant is a B2B SaaS platform that ingests operational signals (log
 **Principle**: keep core logic stable and replaceable (e.g., NATS ↔ Kafka).
 
 ### 3) Multi-Tenant Isolation
-- Every request carries `x-tenant-id`
+- Every request is authenticated and mapped to a tenant
 - Data storage is tenant-scoped
 
 **Principle**: tenant isolation is non-negotiable for SaaS correctness and compliance.

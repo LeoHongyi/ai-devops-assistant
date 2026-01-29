@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { ingestController } from "../controllers/ingest-controller";
 import { sendResult } from "../result-mapper";
@@ -12,37 +12,29 @@ const ingestSchema = z.object({
   serviceId: z.string().optional()
 });
 
-const tenantSchema = z.string().min(1);
-
-function getTenantId(headers: Record<string, unknown>) {
-  const raw = headers["x-tenant-id"];
-  const parsed = tenantSchema.safeParse(raw);
-  if (!parsed.success) return null;
-  return parsed.data;
-}
-
-export function registerIngestRoutes(app: FastifyInstance, bus: EventBus, repo: EventRepository) {
+export function registerIngestRoutes(
+  app: FastifyInstance,
+  bus: EventBus,
+  repo: EventRepository,
+  auth: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>,
+  permit: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>
+) {
   app.post(
     "/ingest/webhook",
     {
+      preHandler: [auth, permit],
       schema: {
         tags: ["ingest"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        }
+        security: [{ bearerAuth: [] }]
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req.headers as Record<string, unknown>);
-      if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const parsed = ingestSchema.safeParse(req.body ?? {});
       if (!parsed.success) return sendResult(reply, err(new AppError("invalid_request")));
       return sendResult(
         reply,
         await ingestController(bus, repo, {
-          tenantId,
+          tenantId: req.auth?.tenantId,
           source: "webhook",
           type: "event",
           payload: parsed.data.payload,
@@ -56,24 +48,19 @@ export function registerIngestRoutes(app: FastifyInstance, bus: EventBus, repo: 
   app.post(
     "/ingest/logs",
     {
+      preHandler: [auth, permit],
       schema: {
         tags: ["ingest"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        }
+        security: [{ bearerAuth: [] }]
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req.headers as Record<string, unknown>);
-      if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const parsed = ingestSchema.safeParse(req.body ?? {});
       if (!parsed.success) return sendResult(reply, err(new AppError("invalid_request")));
       return sendResult(
         reply,
         await ingestController(bus, repo, {
-          tenantId,
+          tenantId: req.auth?.tenantId,
           source: "logs",
           type: "batch",
           payload: parsed.data.payload,
@@ -87,24 +74,19 @@ export function registerIngestRoutes(app: FastifyInstance, bus: EventBus, repo: 
   app.post(
     "/ingest/metrics",
     {
+      preHandler: [auth, permit],
       schema: {
         tags: ["ingest"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        }
+        security: [{ bearerAuth: [] }]
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req.headers as Record<string, unknown>);
-      if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const parsed = ingestSchema.safeParse(req.body ?? {});
       if (!parsed.success) return sendResult(reply, err(new AppError("invalid_request")));
       return sendResult(
         reply,
         await ingestController(bus, repo, {
-          tenantId,
+          tenantId: req.auth?.tenantId,
           source: "metrics",
           type: "batch",
           payload: parsed.data.payload,
@@ -118,24 +100,19 @@ export function registerIngestRoutes(app: FastifyInstance, bus: EventBus, repo: 
   app.post(
     "/ingest/traces",
     {
+      preHandler: [auth, permit],
       schema: {
         tags: ["ingest"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        }
+        security: [{ bearerAuth: [] }]
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req.headers as Record<string, unknown>);
-      if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const parsed = ingestSchema.safeParse(req.body ?? {});
       if (!parsed.success) return sendResult(reply, err(new AppError("invalid_request")));
       return sendResult(
         reply,
         await ingestController(bus, repo, {
-          tenantId,
+          tenantId: req.auth?.tenantId,
           source: "traces",
           type: "batch",
           payload: parsed.data.payload,

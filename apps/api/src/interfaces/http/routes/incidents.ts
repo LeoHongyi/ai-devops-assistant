@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import {
   createIncidentController,
@@ -6,38 +6,33 @@ import {
   getIncidentController,
   closeIncidentController
 } from "../controllers/incidents-controller";
-import { IncidentRepository } from "../../../application/ports/incident-repository";
+import { IncidentRepository } from "../../application/ports/incident-repository";
 import { sendResult } from "../result-mapper";
-import { AppError, err } from "../../../application/result";
+import { AppError, err } from "../../application/result";
 
-const tenantSchema = z.string().min(1);
 const createIncidentSchema = z.object({
   title: z.string().min(1),
   severity: z.enum(["low", "medium", "high", "critical"])
 });
 
-function getTenantId(req: { headers: Record<string, unknown> }) {
-  const raw = req.headers["x-tenant-id"];
-  const parsed = tenantSchema.safeParse(raw);
-  if (!parsed.success) return null;
-  return parsed.data;
-}
-
-export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepository) {
+export function registerIncidentRoutes(
+  app: FastifyInstance,
+  repo: IncidentRepository,
+  auth: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>,
+  permitRead: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>,
+  permitWrite: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>
+) {
   app.get(
     "/incidents",
     {
+      preHandler: [auth, permitRead],
       schema: {
         tags: ["incidents"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        }
+        security: [{ bearerAuth: [] }]
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req as { headers: Record<string, unknown> });
+      const tenantId = req.auth?.tenantId;
       if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       return sendResult(reply, await listIncidentsController(repo, tenantId));
     }
@@ -46,13 +41,10 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
   app.post(
     "/incidents",
     {
+      preHandler: [auth, permitWrite],
       schema: {
         tags: ["incidents"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        },
+        security: [{ bearerAuth: [] }],
         body: {
           type: "object",
           required: ["title", "severity"],
@@ -64,7 +56,7 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req as { headers: Record<string, unknown> });
+      const tenantId = req.auth?.tenantId;
       if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const body = createIncidentSchema.safeParse(req.body);
       if (!body.success) return sendResult(reply, err(new AppError("invalid_request")));
@@ -75,13 +67,10 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
   app.get(
     "/incidents/:id",
     {
+      preHandler: [auth, permitRead],
       schema: {
         tags: ["incidents"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        },
+        security: [{ bearerAuth: [] }],
         params: {
           type: "object",
           required: ["id"],
@@ -90,7 +79,7 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req as { headers: Record<string, unknown> });
+      const tenantId = req.auth?.tenantId;
       if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const id = (req.params as { id: string }).id;
       return sendResult(reply, await getIncidentController(repo, tenantId, id));
@@ -100,13 +89,10 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
   app.post(
     "/incidents/:id/close",
     {
+      preHandler: [auth, permitWrite],
       schema: {
         tags: ["incidents"],
-        headers: {
-          type: "object",
-          required: ["x-tenant-id"],
-          properties: { "x-tenant-id": { type: "string" } }
-        },
+        security: [{ bearerAuth: [] }],
         params: {
           type: "object",
           required: ["id"],
@@ -115,7 +101,7 @@ export function registerIncidentRoutes(app: FastifyInstance, repo: IncidentRepos
       }
     },
     async (req, reply) => {
-      const tenantId = getTenantId(req as { headers: Record<string, unknown> });
+      const tenantId = req.auth?.tenantId;
       if (!tenantId) return sendResult(reply, err(new AppError("invalid_request")));
       const id = (req.params as { id: string }).id;
       return sendResult(reply, await closeIncidentController(repo, tenantId, id));
