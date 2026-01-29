@@ -6,8 +6,12 @@ import { normalizeTenantSlug } from "../../../application/auth/tenant";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  tenantSlug: z.string().min(1),
+  tenantSlug: z.string().min(1).optional(),
+  tenantName: z.string().min(1).optional(),
   password: z.string().min(8)
+}).refine((v) => Boolean(v.tenantSlug || v.tenantName), {
+  message: "tenantSlug or tenantName is required",
+  path: ["tenantSlug"]
 });
 
 const refreshSchema = z.object({
@@ -22,10 +26,11 @@ export function registerAuthRoutes(app: FastifyInstance, prisma: PrismaClient) {
         tags: ["auth"],
         body: {
           type: "object",
-          required: ["email", "tenantSlug", "password"],
+          required: ["email", "password"],
           properties: {
             email: { type: "string" },
             tenantSlug: { type: "string" },
+            tenantName: { type: "string" },
             password: { type: "string" }
           }
         }
@@ -35,8 +40,8 @@ export function registerAuthRoutes(app: FastifyInstance, prisma: PrismaClient) {
       const parsed = loginSchema.safeParse(req.body);
       if (!parsed.success) return reply.status(400).send({ error: "invalid_request" });
 
-      const { email, tenantSlug, password } = parsed.data;
-      const slug = normalizeTenantSlug(tenantSlug);
+      const { email, tenantSlug, tenantName, password } = parsed.data;
+      const slug = tenantSlug ? normalizeTenantSlug(tenantSlug) : normalizeTenantSlug(tenantName ?? "");
       const tenant = await prisma.tenant.findFirst({ where: { slug } });
       if (!tenant) return reply.status(401).send({ error: "unauthorized" });
 
