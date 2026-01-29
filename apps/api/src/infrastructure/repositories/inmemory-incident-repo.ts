@@ -6,17 +6,18 @@ let idSeq = 1;
 export class InMemoryIncidentRepository implements IncidentRepository {
   private incidents: Incident[] = [];
 
-  async list() {
-    return this.incidents;
+  async list(tenantId: string) {
+    return this.incidents.filter((i) => i.tenantId === tenantId);
   }
 
-  async getById(id: string) {
-    return this.incidents.find((i) => i.id === id) ?? null;
+  async getById(tenantId: string, id: string) {
+    return this.incidents.find((i) => i.id === id && i.tenantId === tenantId) ?? null;
   }
 
-  async create(input: Omit<Incident, "id" | "openedAt" | "status" | "closedAt">) {
+  async create(tenantId: string, input: Omit<Incident, "id" | "tenantId" | "openedAt" | "status" | "closedAt">) {
     const incident: Incident = {
       id: String(idSeq++),
+      tenantId,
       title: input.title,
       severity: input.severity,
       status: "open",
@@ -26,8 +27,8 @@ export class InMemoryIncidentRepository implements IncidentRepository {
     return incident;
   }
 
-  async close(id: string) {
-    const incident = this.incidents.find((i) => i.id === id);
+  async close(tenantId: string, id: string) {
+    const incident = this.incidents.find((i) => i.id === id && i.tenantId === tenantId);
     if (!incident) return null;
     incident.status = "closed";
     incident.closedAt = new Date();

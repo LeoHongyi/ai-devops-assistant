@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { EventRepository } from "../../application/ports/event-repository";
 import { Event } from "../../domain/event";
 
@@ -14,7 +14,7 @@ export class PrismaEventRepository implements EventRepository {
         severity: input.severity,
         source: input.source,
         ts: input.ts,
-        payload: (input.payload ?? Prisma.JsonNull) as Prisma.InputJsonValue
+        payload: input.payload ?? {}
       }
     });
   }
